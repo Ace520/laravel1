@@ -15,3 +15,4 @@ Route::get('/', function () {
     return view('welcome');
 });
 Route::get('/phpml','PhpMlController@index')->name('phpml.index');
+Route::get('/querylist','QuerylistController@index')->name('querylist.index');
