@@ -29,28 +29,29 @@ use QL\QueryList;
 class QuerylistController extends Controller
 {
     public function index(){
-        $url = 'https://learnku.com/articles/38644';
+        $url = "https://learnku.com/?page=2";
         if (!$html = Cache::get($url)){
-            $html = QueryList::get($url)->getHtml();
-            Cache::forever($url,$html);
+            $html =  QueryList::get($url)->getHtml();
         }
-        $rules = [
-            'title'=> ['.article-content .pull-left','text'],
-            'time'=> ['.article-content .book-article-meta a:eq(2) span','text'],
-            'content' => ['.article-content .markdown-body','html','-.meta'],
-            'topic_icon' => ['.article-content .book-article-meta a:eq(1) .image','src'],
-            'topic_name' => ['.article-content .book-article-meta a:eq(1)','text'],
-            'tags' => ['.article-content .markdown-body .meta','html'],
-        ];
-        $ql =  QueryList::html($html)->rules($rules)->query();
-        $data = $ql->getData()->first();
-        $data['url'] = $url;
-        $data['content'] = $this->htmlToMarkdown($data['content']);
-        $tags = QueryList::html($data['tags'])->find('a')->getString();
+        $ql =  new QueryList();
+        $ql->html($html);
+        $list = $ql->find('.category-name a')->attrs('href');
+        dd($list);
+    }
+    public function article(){
+        $url = 'https://learnku.com/articles/38646';
+        $converter = $this->getHtmlConverter();
+        $ql =   QueryList::get($url);
+        $data['title'] = $ql->find('.article-content .pull-left')->text();
+        $data['time'] = $ql->find('.article-content .book-article-meta a:eq(2) span')->attr('title');
+        $tags = $ql->find('.article-content .markdown-body .meta a')->getStrings();
         $data['tags'] = is_array($tags) && count($tags) > 0 ? implode(',', $tags):'';
+        $content = $ql->rules(['content'=>['.article-content .markdown-body','html','-div']])->query()->getData()->first();
+        $data['content'] = $converter->convert($content['content']);
+        $data['url'] = $url;
         dd($data);
     }
-    private function htmlToMarkdown($html){
+    private function getHtmlConverter(){
         $environment = new Environment(array(
             'preserve_comments' => true
         ));
@@ -70,8 +71,6 @@ class QuerylistController extends Controller
         $environment->addConverter(new PreformattedConverter());
         $environment->addConverter(new TextConverter());
         $environment->addConverter(new TableConverter());
-        $converter = new HtmlConverter($environment);
-        $markdown = $converter->convert($html);
-        return $markdown;
+        return new HtmlConverter($environment);
     }
 }
