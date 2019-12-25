@@ -36,20 +36,25 @@ class QuerylistController extends Controller
         $ql =  new QueryList();
         $ql->html($html);
         $list = $ql->find('.category-name a')->attrs('href');
-        dd($list);
+        $data = [];
+        foreach ($list as $item){
+            if (preg_match('/articles/',$item)){
+                $data[] = $this->article($item);
+            }
+        }
+        dd($data);
     }
-    public function article(){
-        $url = 'https://learnku.com/articles/38646';
+    public function article($url){
         $converter = $this->getHtmlConverter();
         $ql =   QueryList::get($url);
         $data['title'] = $ql->find('.article-content .pull-left')->text();
-        $data['time'] = $ql->find('.article-content .book-article-meta a:eq(2) span')->attr('title');
+        $data['time'] = $ql->find('.article-content .book-article-meta .time + span')->attr('title');
         $tags = $ql->find('.article-content .markdown-body .meta a')->getStrings();
         $data['tags'] = is_array($tags) && count($tags) > 0 ? implode(',', $tags):'';
         $content = $ql->rules(['content'=>['.article-content .markdown-body','html','-div']])->query()->getData()->first();
         $data['content'] = $converter->convert($content['content']);
         $data['url'] = $url;
-        dd($data);
+        return $data;
     }
     private function getHtmlConverter(){
         $environment = new Environment(array(
