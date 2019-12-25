@@ -16,7 +16,8 @@
         "laravel/tinker": "^1.0",
         "league/html-to-markdown": "^4.9",
         "php-ai/php-ml": "^0.8.0",
-        "pixel418/markdownify": "^2.3"
+        "pixel418/markdownify": "^2.3",
+        "symfony/translation-contracts": "^1.1.6"
     },
     "require-dev": {
         "facade/ignition": "^1.4",

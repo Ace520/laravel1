@@ -29,11 +29,28 @@ use QL\QueryList;
 class QuerylistController extends Controller
 {
     public function index(){
-        $url = 'https://learnku.com/laravel/t/5420/your-keyboard-shortcuts-please';
+        $url = 'https://learnku.com/articles/38644';
         if (!$html = Cache::get($url)){
-            $html = QueryList::get($url)->find('.markdown-body')->html();
+            $html = QueryList::get($url)->getHtml();
             Cache::forever($url,$html);
         }
+        $rules = [
+            'title'=> ['.article-content .pull-left','text'],
+            'time'=> ['.article-content .book-article-meta a:eq(2) span','text'],
+            'content' => ['.article-content .markdown-body','html','-.meta'],
+            'topic_icon' => ['.article-content .book-article-meta a:eq(1) .image','src'],
+            'topic_name' => ['.article-content .book-article-meta a:eq(1)','text'],
+            'tags' => ['.article-content .markdown-body .meta','html'],
+        ];
+        $ql =  QueryList::html($html)->rules($rules)->query();
+        $data = $ql->getData()->first();
+        $data['url'] = $url;
+        $data['content'] = $this->htmlToMarkdown($data['content']);
+        $tags = QueryList::html($data['tags'])->find('a')->getString();
+        $data['tags'] = is_array($tags) && count($tags) > 0 ? implode(',', $tags):'';
+        dd($data);
+    }
+    private function htmlToMarkdown($html){
         $environment = new Environment(array(
             'preserve_comments' => true
         ));
@@ -55,6 +72,6 @@ class QuerylistController extends Controller
         $environment->addConverter(new TableConverter());
         $converter = new HtmlConverter($environment);
         $markdown = $converter->convert($html);
-        Log::info($markdown);
+        return $markdown;
     }
 }
