@@ -29,6 +29,20 @@ use QL\QueryList;
 class QuerylistController extends Controller
 {
     public function index(){
+        $url = "https://blog.csdn.net";
+        $url = "https://www.runoob.com";
+        if (!$html = Cache::get($url)){
+            $html =  QueryList::get($url)->getHtml();
+            Cache::forever($url,$html);
+        }
+        $ql =  new QueryList();
+        $ql->html($html);
+        $data['title'] = $ql->find('title')->text();
+        $data['content'] = $ql->find("meta[name='description']")->attr('content');
+        $data['icon'] = $ql->find("link[rel*='icon']")->attr('href');
+        dd($data);
+    }
+    public function articles(){
         $url = "https://learnku.com/?page=2";
         if (!$html = Cache::get($url)){
             $html =  QueryList::get($url)->getHtml();
