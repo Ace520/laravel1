@@ -29,6 +29,31 @@ use QL\QueryList;
 class QuerylistController extends Controller
 {
     public function index(){
+
+    }
+    public function runoob_list(){
+        $url = "https://www.runoob.com";
+        if (!$html = Cache::get($url)){
+            $html =  QueryList::get($url)->getHtml();
+            Cache::forever($url,$html);
+        }
+        $ql =  new QueryList();
+        $ql->html($html);
+        $htmls = $ql->find('.middle-column-home .codelist')->htmls();
+        $data = [];
+        foreach ($htmls as $k=>$v){
+            $item = $ql->html($v)->rules([
+                'title' => array('h4','text'),
+                'url' => array('','href')
+            ])->range('a')->query()->getData();
+            $data[] = [
+                'category'=>$ql->html($v)->find('h2')->text(),
+                'children'=>$item,
+            ];
+        }
+        dd($data);
+    }
+    public function website(){
         $url = "https://blog.csdn.net";
         $url = "https://www.runoob.com";
         if (!$html = Cache::get($url)){
