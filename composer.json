@@ -12,6 +12,7 @@
         "fideloper/proxy": "^4.0",
         "laravel/framework": "^6.2",
         "laravel/tinker": "^1.0",
+        "spatie/laravel-query-builder": "^2.4",
         "swooletw/laravel-swoole": "^2.6"
     },
     "require-dev": {
